@@ -1,46 +1,50 @@
-import { useFrame } from '@react-three/fiber';
-import { useState } from 'react';
-
 import { useScroll } from '@react-three/drei';
-import { useVibe } from '../hooks/useVibe';
+import { useFrame } from '@react-three/fiber';
+import { useCallback, useState } from 'react';
+import { useTheme } from '../hooks/useTheme';
 
-interface ScrollChevronProps
-	extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-	onClick?: () => void;
+interface ScrollChevronProps {
 	targetOffset?: number;
+	onClick?: () => void;
+	className?: string;
 }
 
 export const ScrollChevron: React.FC<ScrollChevronProps> = ({
-	onClick,
 	targetOffset = 1,
+	onClick,
+	className = '',
 	...props
 }) => {
-	const { computeColor } = useVibe();
+	const { computeColor } = useTheme();
 	const [chevronColor, setChevronColor] = useState('#000000');
-
 	const scroll = useScroll();
-	const handleClick = (e: React.MouseEvent) => {
-		e.preventDefault();
-		if (scroll.el) {
-			// console.log('scroll height: ', scroll.el.scrollHeight);
-			// console.log('scroll.el ', scroll.pages);
+
+	const handleClick = useCallback(
+		(e: React.MouseEvent) => {
+			e.preventDefault();
+			if (!scroll.el) return;
+
 			scroll.el.scrollTo({
 				top: targetOffset * scroll.el.scrollHeight,
 				behavior: 'smooth'
 			});
-		}
-		// onClick ? onClick() : console.log('Scrolling...');
-	};
+
+			onClick?.();
+		},
+		[scroll.el, targetOffset, onClick]
+	);
 
 	useFrame(() => {
-		setChevronColor(computeColor(5));
+		const newColor = computeColor();
+		if (newColor !== chevronColor) {
+			setChevronColor(newColor);
+		}
 	});
 
 	return (
 		<button
-			className='mt-auto cursor-pointer'
+			className={`mt-auto cursor-pointer ${className}`}
 			aria-label='Scroll to the next page'
-			role='button'
 			onClick={handleClick}
 			{...props}
 		>

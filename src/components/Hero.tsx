@@ -1,4 +1,3 @@
-// External libraries
 import {
 	Decal,
 	PerspectiveCamera,
@@ -12,10 +11,9 @@ import * as THREE from 'three';
 import { GLTF } from 'three-stdlib';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
-// Internal imports
-import { useVibe } from '../hooks/useVibe';
+import { useTheme } from '../hooks/useTheme';
+import { ThemeKey } from '../types';
 
-// Type definitions
 type HeroGLTF = GLTF & {
 	nodes: {
 		[key: string]: THREE.Mesh;
@@ -24,38 +22,24 @@ type HeroGLTF = GLTF & {
 
 interface HeroProps {
 	bop: boolean;
+	themeKey: ThemeKey;
 }
 
-export const Hero: React.FC<HeroProps> = ({ bop }) => {
+export const Hero: React.FC<HeroProps> = ({ bop, themeKey }) => {
 	const heroPath = `${import.meta.env.BASE_URL}models/k4t.glb`;
 
-	// References
+	// Refs
 	const textRef = useRef<THREE.Mesh>(null);
 	const groupRef = useRef<THREE.Group>(null);
 
-	// State management
+	// State
 	const [decalColor, setDecalColor] = useState('#000000');
-	// const [hovered, setHovered] = useState(false);
 
-	// Context hooks
-	// const { gl } = useThree();
-	const { computeColor } = useVibe();
+	// Theme
+	const { computeColor, decalText } = useTheme(themeKey);
+
+	// Model
 	const { nodes } = useGLTF(heroPath) as HeroGLTF;
-
-	// Event handlers
-	// const handlePointerOver = useCallback(() => {
-	// 	setHovered(true);
-	// 	gl.domElement.style.cursor = 'pointer';
-	// }, [gl]);
-
-	// const handlePointerOut = useCallback(() => {
-	// 	setHovered(false);
-	// 	gl.domElement.style.cursor = 'auto';
-	// }, [gl]);
-
-	// const handleDecalClick = useCallback(() => {
-	// 	window.open('https://github.com/dk4tz', '_blank');
-	// }, []);
 
 	// Memoized computations
 	const material = useMemo(
@@ -81,10 +65,10 @@ export const Hero: React.FC<HeroProps> = ({ bop }) => {
 		// Update decal position and color
 		if (textRef.current) {
 			textRef.current.position.x = Math.sin(t) * 10;
-			setDecalColor(computeColor(5));
 		}
+		setDecalColor(computeColor());
 
-		// Animate hero's position and rotation
+		// Animate
 		if (groupRef.current) {
 			if (bop) {
 				groupRef.current.rotation.x += 0.01;
@@ -96,7 +80,6 @@ export const Hero: React.FC<HeroProps> = ({ bop }) => {
 		}
 	});
 
-	// JSX Render
 	return (
 		<group
 			ref={groupRef}
@@ -117,9 +100,6 @@ export const Hero: React.FC<HeroProps> = ({ bop }) => {
 					position={[-0.5, -0.75, -0.25]}
 					rotation={[-2.25, 1.7, 2.25]}
 					scale={[1, 0.3, 1.2]}
-					// onClick={handleDecalClick}
-					// onPointerOver={handlePointerOver}
-					// onPointerOut={handlePointerOut}
 				>
 					<meshStandardMaterial
 						roughness={0.6}
@@ -141,7 +121,7 @@ export const Hero: React.FC<HeroProps> = ({ bop }) => {
 								fontSize={4}
 								color='white'
 							>
-								{bop ? 'alors on danse' : 'david hariton katz'}
+								{bop ? decalText : 'david hariton katz'}
 							</Text>
 						</RenderTexture>
 					</meshStandardMaterial>
